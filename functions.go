@@ -252,10 +252,137 @@ func (lm *LibraryManagement) BorrowBook(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func ReturnBook(w http.ResponseWriter, r *http.Request) {
+func (lm *LibraryManagement)ReturnBook(w http.ResponseWriter, r *http.Request) {
+	 var ReturnBookDetails Book
+	 err:=json.NewDecoder(r.Body).Decode(&ReturnBookDetails)
+	 if err !=nil{
+		fmt.Println("json error")
+		return
+	 }
+	 var dbreturnbookDetails string
+	 query :=`SELECT no_of_copies FROM books WHERE book_id=$1`
+	 err =lm.db.QueryRow(query,ReturnBookDetails.BookID).Scan(&dbreturnbookDetails)
+	 if err !=nil{
+		fmt.Println("Unable to fetch")
+		return
+	 }
+	 query1:=`UPDATE books SET no_of_copies=$1 WHERE book_id=$2`
+	 var dbreturnBookcopies, userreturnBookcopies int
+	 dbreturnBookcopies,err = strconv.Atoi(dbreturnbookDetails)
+	 if err!=nil{
+		fmt.Println("Converting error")
+		return
+	 }
+	 userreturnBookcopies,err = strconv.Atoi(ReturnBookDetails.NumberOfCopies)
+	 if err!=nil{
+		fmt.Println("Converting error 2")
+		return
+	 }
+	 total:=strconv.Itoa(dbreturnBookcopies+userreturnBookcopies)
+	 _,err=lm.db.Exec(query1,total,ReturnBookDetails.BookID)
+	 if err !=nil{
+		fmt.Println("query execution error",err)
+		return
+	 }
+	err= json.NewEncoder(w).Encode(map[string]string{"message":"Book returnd Succesfully"})
+	if err !=nil{
+		fmt.Println("Encode error")
+		return
+	}
 
 }
 
-func PurchaseBook(w http.ResponseWriter, r *http.Request) {
+func (lm *LibraryManagement)PurchaseBook(w http.ResponseWriter, r *http.Request) {
+	var PurchaseBookDetails Purchase
+	err:=json.NewDecoder(r.Body).Decode(&PurchaseBookDetails)
+	if err!=nil{
+		fmt.Println("json error")
+		return
+	}
+	query:=`SELECT user_balance FROM users WHERE user_id=$1`
+	var dbBalance string
+	err=lm.db.QueryRow(query,PurchaseBookDetails.UserId).Scan(&dbBalance)
+	if err!=nil{
+		fmt.Println("unable to fetch 1",err)
+		return
+	}
+	query1:=`SELECT no_of_copies,book_price FROM books WHERE book_id=$1`
+	var dbbookcopies, dbbookprice string
+	err=lm.db.QueryRow(query1,PurchaseBookDetails.BookId).Scan(&dbbookcopies,&dbbookprice)
+	if err!=nil{
+		fmt.Println("unable to fetch 2")
+		return
+	}
+	if dbbookcopies < PurchaseBookDetails.NumberOfCopies{
+		err=json.NewEncoder(w).Encode(map[string]string{"message":"error"})
+		if err!=nil{
+			fmt.Println("erorr in encode 1")
+			return
+		}
+		return
+	}else
+	{
+	var Dbnumberofcopies,Usernumberofcopies,Dbbookprice ,DBuserbalance int
+	Dbnumberofcopies,err= strconv.Atoi(dbbookcopies)
+	if err!=nil{
+		fmt.Println("error in converting 1")
+		return
+	}
+	Usernumberofcopies,err=strconv.Atoi(PurchaseBookDetails.NumberOfCopies)
+	if err!=nil{
+		fmt.Println("converting error 2")
+		return
+	}
+	Dbbookprice,err=strconv.Atoi(dbbookprice)
+	if err!=nil{
+		fmt.Println("converting error 3")
+		return
+	}
+	DBuserbalance,err=strconv.Atoi(dbBalance)
+	if err !=nil{
+		fmt.Println("converting error 4")
+		return
+	}
+	total:= Usernumberofcopies*Dbbookprice
+	total3:= DBuserbalance-total
 
-}
+	total2 :=strconv.Itoa(Dbnumberofcopies-Usernumberofcopies)
+
+	query2:=`UPDATE books SET no_of_copies=$1  WHERE book_id=$2`
+	_,err=lm.db.Exec(query2,total2,PurchaseBookDetails.BookId)
+		if err!=nil{
+			fmt.Println("query execution error 1",err)
+			return
+		}
+		query3:=`UPDATE users SET user_balance=$1  WHERE user_id=$2`
+		_,err=lm.db.Exec(query3,total3,PurchaseBookDetails.UserId)
+		if err !=nil{
+			fmt.Println("query execution error 2",err)
+			return
+		}
+		err=json.NewEncoder(w).Encode(map[string]string{"message":"Book purchased Succesfully"})
+		if  err!=nil{
+			fmt.Println("encode error 2")
+			return
+		}
+	}
+	}
+	
+
+	
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+

@@ -16,3 +16,12 @@ type Book struct {
 	NumberOfCopies string `json:"no_of_copies"`
 }
 
+type Purchase struct{
+	UserId string `json:"user_id"`
+	BookId string `json:"book_id"`
+	NumberOfCopies string `json:"no_of_copies"`
+
+}
+
+
+

@@ -22,7 +22,8 @@ func main() {
 	mux.HandleFunc("/addbook", management.AddBook)
 	mux.HandleFunc("/deletebook", management.DeleteBook)
 	mux.HandleFunc("/borrowbook", management.BorrowBook)
-
+	mux.HandleFunc("/returnbook",management.ReturnBook)
+	mux.HandleFunc("/purchasebook",management.PurchaseBook)
 	// Apply CORS
 	handlerWithCORS := enableCORS(mux)
 
