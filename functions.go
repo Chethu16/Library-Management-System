@@ -21,7 +21,7 @@ func enableCORS(h http.Handler) http.Handler {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-		h.ServeHTTP(w, r)
+		h.ServeHTTP(w, r)	
 	})
 }
 

@@ -13,6 +13,8 @@ func main() {
 		fmt.Println("error connecting to database")
 		return
 	}
+	defer db.Close()
+
 	management := LibraryManagement{db}
 
 	mux := http.NewServeMux()
