@@ -227,7 +227,16 @@ func (lm *LibraryManagement) BorrowBook(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("query execution error", err)
 		return
 	}
+
 	fmt.Println(dbBorrowBook)
+	if dbBorrowBook<BorrowBookDetails.NumberOfCopies{
+		err =json.NewEncoder(w).Encode(map[string]string{"message":"error"})
+		if err !=nil{
+			fmt.Println("error in encode")
+			return
+		}
+		return
+	}
 	var dbBorrowBookCopies, userBorrowBookCopies int
 	dbBorrowBookCopies, err = strconv.Atoi(dbBorrowBook)
 	if err != nil {
@@ -239,17 +248,23 @@ func (lm *LibraryManagement) BorrowBook(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("converting error 2 ", err)
 		return
 	}
+	
+
 	total := strconv.Itoa(dbBorrowBookCopies - userBorrowBookCopies)
 	_, err = lm.db.Exec(query1, total, BorrowBookDetails.BookID)
 	if err != nil {
 		fmt.Println("error updating table")
 		return
 	}
+	
+
 	err = json.NewEncoder(w).Encode(map[string]string{"message": "book borrowed succesfully "})
 	if err != nil {
 		fmt.Println("encode error")
 		return
 	}
+
+
 }
 
 func (lm *LibraryManagement)ReturnBook(w http.ResponseWriter, r *http.Request) {
